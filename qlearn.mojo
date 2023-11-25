@@ -37,21 +37,18 @@ struct QEnvironment:
 
 
     fn get_next_location(self, row_index: Int, column_index: Int, action: Int) -> StaticIntTuple[2]:
-        var ret = StaticIntTuple[2](0, 0)
+        var ret = StaticIntTuple[2](row_index, column_index)
         if action == 0:
             ret[0] = row_index - 1
-            ret[1] = column_index
         elif action == 1:
             ret[0] = row_index + 1
-            ret[1] = column_index
         elif action == 2:
-            ret[0] = row_index
             ret[1] = column_index - 1
         elif action == 3:
-            ret[0] = row_index
             ret[1] = column_index + 1
-        else:
+        if ret[0] < 0 or ret[0] >= self.rows:
             ret[0] = row_index
+        if ret[1] < 0 or ret[1] >= self.columns:
             ret[1] = column_index
         return ret
 
@@ -108,6 +105,9 @@ struct QLearning:
             let ret = rand[DType.uint16](1)[0] % len(self.actions)
             return ret.to_int()
 
+    @always_inline
+    fn get_random_action(self, cur_row: Int, cur_col: Int) -> Int:
+        return self.argmax(cur_row, cur_col)
 
     fn train(inout self) raises:
         for episode in range(self.episodes):
@@ -126,22 +126,29 @@ struct QLearning:
                 self.q_table[pos[0], pos[1], action] = new_q_value
                 pos = next_pos
 
-    fn shortest(start_row, start_col):
+    fn shortest(inout self, start_row: Int, start_col: Int) -> DynamicVector[StaticIntTuple[2]]:
         # return immediately if this is an invalid starting location
-        if is_terminal_state(start_row_index, start_column_index):
-            return []
+        if self.env.is_terminal_state(start_row, start_col):
+            return DynamicVector[StaticIntTuple[2]](0)
         else:  # if this is a 'legal' starting location
-            current_row_index, current_column_index = start_row_index, start_column_index
-            shortest_path = []
-            shortest_path.append([current_row_index, current_column_index])
+            var cur_row = start_row
+            var cur_col = start_col
+            var shortest_path = DynamicVector[StaticIntTuple[2]](0)
+            shortest_path.push_back(StaticIntTuple[2](cur_row, cur_col))
+            var tries = 200
             # continue moving along the path until we reach the goal (i.e., the item packaging location)
-            while not is_terminal_state(current_row_index, current_column_index):
+            while not self.env.is_terminal_state(cur_row, cur_col):
                 # get the best action to take
-                action_index = get_next_action(current_row_index, current_column_index, 1.)
+                let action_index = self.get_random_action(cur_row, cur_col)
                 # move to the next location on the path, and add the new location to the list
-                current_row_index, current_column_index = get_next_location(current_row_index, current_column_index,
-                                                                            action_index)
-                shortest_path.append([current_row_index, current_column_index])
+                let ret = self.env.get_next_location(cur_row, cur_col, action_index)
+                cur_row = ret[0]
+                cur_col = ret[1]
+                shortest_path.push_back(StaticIntTuple[2](cur_row, cur_col))
+                tries -= 1
+                if tries <= 0:
+                    print("Could not find a path to the goal after 200 tries.")
+                    break
             return shortest_path
 
 

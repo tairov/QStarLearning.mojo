@@ -1,5 +1,5 @@
 from mmatrix import Matrix
-
+from qstarlearning import FREE, WALL
 @register_passable("trivial")
 struct Node:
     var g: Int
