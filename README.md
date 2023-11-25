@@ -1,4 +1,4 @@
-## qstarlearning.🔥
+## Q⭐️Learning.🔥
 
 <p align="center">
   <img src="assets/Figure_1.png" width="600" alt="llama2.mojo benchmark">
