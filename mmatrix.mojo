@@ -16,10 +16,11 @@ struct Matrix[dtype: DType = DType.int8]:
         self.dim0 = dims[0]
         self.dim1 = dims[1]
         self.dim2 = 1
+        
         if len(dims) == 3:
             self.dim2 = dims[2]
-        self._data = DTypePointer[dtype].alloc(dims[0] * dims[1] * dims[2])
-        memset_zero[dtype](self._data, dims[0] * dims[1] * dims[2])
+        self._data = DTypePointer[dtype].alloc(self.dim0 * self.dim1 * self.dim2)
+        memset_zero[dtype](self._data, self.dim0 * self.dim1 * self.dim2)
         
     fn __copyinit__(inout self, other: Self):
         self._data = other._data
