@@ -17,6 +17,8 @@ alias WALL = 1
 alias Q_REWARD = 100
 alias Q_WALL_PENALTY = -100
 alias Q_FREE_PENALTY = -1
+alias Q_TERMINAL_STATE_VALUE = Q_FREE_PENALTY
+alias Q_STEPS = 1000
 
 alias nelts = 16 * simdwidthof[DType.int8]()
 
@@ -195,7 +197,10 @@ fn main() raises:
             # set reward -1 for free cells
             if state == FREE:
                 t[i, j] = Q_FREE_PENALTY
-
-    t.print()
+    let qenv = QEnvironment(t, Q_TERMINAL_STATE_VALUE)
+    var qlearn = QLearning(qenv, Q_STEPS)
+    qlearn.train()
+    qlearn.print_results()
+    
 
 

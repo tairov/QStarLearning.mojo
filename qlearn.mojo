@@ -18,14 +18,8 @@ struct QEnvironment:
         self.columns = grid.dim1
         self.terminal_reward = terminal_reward
 
-    fn __moveinit__(inout self, owned other: Self):
-        self.grid = other.grid
-        self.rows = other.rows
-        self.columns = other.columns
-        self.terminal_reward = other.terminal_reward
-
     fn get_starting_location(self) -> StaticIntTuple[2]:
-        var ret: StaticIntTuple[2]
+        var ret = StaticIntTuple[2](0, 0)
         let r = rand[DType.uint16](2)
         ret[0] = r[0].to_int() % self.rows
         ret[1] = r[1].to_int() % self.columns
@@ -43,7 +37,7 @@ struct QEnvironment:
 
 
     fn get_next_location(self, row_index: Int, column_index: Int, action: Int) -> StaticIntTuple[2]:
-        var ret: StaticIntTuple[2]
+        var ret = StaticIntTuple[2](0, 0)
         if action == 0:
             ret[0] = row_index - 1
             ret[1] = column_index
@@ -77,10 +71,11 @@ struct QLearning:
     var learning_rate: Float32
     var episodes: Int
 
-    fn __init__(inout self, env: QEnvironment):
+    fn __init__(inout self, env: QEnvironment, steps: Int):
         seed()
         # move env into self
-        self.env = env^
+        self.env = QEnvironment(env.grid, env.terminal_reward)
+
         self.actions = VariadicList[Int](0, 1, 2, 3)
         self.q_table = Matrix[DType.float32](self.env.rows, self.env.columns, len(self.actions))
         self.q_table.fill(0.0)
@@ -88,7 +83,7 @@ struct QLearning:
         self.discount_factor = 0.9
         self.learning_rate = 0.9
 
-        self.episodes = 1000
+        self.episodes = steps
 
     @always_inline
     fn argmax(self, cur_row: Int, cur_col: Int) -> Int:
@@ -106,11 +101,11 @@ struct QLearning:
     fn get_action(self, cur_row: Int, cur_col: Int) -> Int:
         # if a randomly chosen value between 0 and 1 is less than epsilon,
         # then choose the most promising value from the Q-table for this state.
-        var _rnd = rand[DType.float16](1)
+        let _rnd = rand[DType.float16](1)
         if  _rnd[0] < self.epsilon:
             return self.argmax(cur_row, cur_col)
         else:  # choose a random action
-            var ret = rand[DType.uint16](1)[0] % len(self.actions)
+            let ret = rand[DType.uint16](1)[0] % len(self.actions)
             return ret.to_int()
 
 
@@ -130,6 +125,14 @@ struct QLearning:
                 let new_q_value = old_q_value + self.learning_rate * temporal_difference
                 self.q_table[pos[0], pos[1], action] = new_q_value
                 pos = next_pos
+
+    fn print_results(inout self):
+        print("Training finished.\n")
+        print("Q Table:\n")
+        for i in range(self.q_table.dim2):
+            print("Action: ", i)
+            self.q_table.print(i)
+            print("\n")
 
 
 

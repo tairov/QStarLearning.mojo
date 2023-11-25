@@ -1,5 +1,6 @@
 from memory import memset_zero, memset
 from algorithm import vectorize, parallelize
+from math import mod, trunc
 
 
 alias nelts = 16 * simdwidthof[DType.int8]()
@@ -50,11 +51,12 @@ struct Matrix[dtype: DType = DType.int8]:
 
         vectorize[nelts, _fill](cnt)
 
-    fn print(self) -> None:
+    fn print(self, z: Int = 0) -> None:
         var rank: Int = 2
         var dim0: Int = 0
         var dim1: Int = 0
         var val: SIMD[dtype, 1] = 0.0
+        let prec: Int = 2
         if self.dim0 == 1:
             rank = 1
             dim0 = 1
@@ -75,10 +77,14 @@ struct Matrix[dtype: DType = DType.int8]:
                     if rank == 1:
                         val = self._data.simd_load[1](k)
                     if rank == 2:
-                        val = self[j, k]
-                    let int_str: String
-                    int_str = String(val)
-                    let s = int_str  # '*' if val == 2 else int_str
+                        val = self[j, k, z]
+
+                    var cval = val.cast[DType.float32]()
+                    let int_str = String(trunc(cval).cast[DType.int32]())
+                    let float_str: String
+                    float_str = String(mod(cval,1))
+                    let s = int_str+"."+float_str[2:prec+2]
+
                     if k == 0:
                         print_no_newline(s)
                     else:
