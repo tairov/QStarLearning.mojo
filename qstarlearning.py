@@ -10,7 +10,6 @@ from gen_maze import (
 
 from astar import astar
 
-from qlearn import QLearning
 
 
 WIDTH, HEIGHT = 50, 50
@@ -25,6 +24,4 @@ if end not in path:
     path1 = astar(new_maze, end, start)
     path = set(path + path1)
 
-ql = QLearning(WIDTH * HEIGHT, 10, 0.5, 0.5)
-ql.train_astar(new_maze, 1000, 0.5)
 draw_full_maze(new_maze, path, start, end)

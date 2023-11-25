@@ -126,6 +126,25 @@ struct QLearning:
                 self.q_table[pos[0], pos[1], action] = new_q_value
                 pos = next_pos
 
+    fn shortest(start_row, start_col):
+        # return immediately if this is an invalid starting location
+        if is_terminal_state(start_row_index, start_column_index):
+            return []
+        else:  # if this is a 'legal' starting location
+            current_row_index, current_column_index = start_row_index, start_column_index
+            shortest_path = []
+            shortest_path.append([current_row_index, current_column_index])
+            # continue moving along the path until we reach the goal (i.e., the item packaging location)
+            while not is_terminal_state(current_row_index, current_column_index):
+                # get the best action to take
+                action_index = get_next_action(current_row_index, current_column_index, 1.)
+                # move to the next location on the path, and add the new location to the list
+                current_row_index, current_column_index = get_next_location(current_row_index, current_column_index,
+                                                                            action_index)
+                shortest_path.append([current_row_index, current_column_index])
+            return shortest_path
+
+
     fn print_results(inout self):
         print("Training finished.\n")
         print("Q Table:\n")
