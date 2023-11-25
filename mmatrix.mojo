@@ -25,6 +25,7 @@ struct Matrix[dtype: DType = DType.int8]:
         self._data = other._data
         self.dim0 = other.dim0
         self.dim1 = other.dim1
+        self.dim2 = other.dim2
 
     fn __getitem__(self, x: Int, y: Int) -> SIMD[dtype,1]:
         return self._data.simd_load[1](x * self.dim1 + y)
